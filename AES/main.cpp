@@ -36,6 +36,17 @@ char* base64_encode(const U8* input, int length)
     return buff;
 }
 
+void base64_decode(const U8* input, U8* output) {
+    BIO* b64 = BIO_new(BIO_f_base64());
+    BIO* bio = BIO_new_mem_buf(input, -1);
+    bio = BIO_push(b64, bio);
+    BIO_set_flags(bio, BIO_FLAGS_BASE64_NO_NL);
+
+    int decoded_length = BIO_read(bio, output, strlen((const char*)input));
+    output[decoded_length] = '\0';
+
+    BIO_free_all(bio);
+}
 
 int aes_encrypt(U8* p_in, U8* p_out, U8* cipher_key, U8* iv_enc, int size)
 {
@@ -57,41 +68,92 @@ int aes_decrypt(U8* p_in, U8* p_out, U8* cipher_key, U8* iv_dec, int size)
 
 int main() {
     int i;
-    int encrypt_size;
-    U8 p_text[1024];
-    U8 p_encrypt[1024];
-    U8 p_decrypt[1024];
-    U8 p_temp[1024];
-    U8 iv_enc[AES_BLOCK_SIZE];
-    U8 iv_dec[AES_BLOCK_SIZE];
-    U8 iv_temp[AES_BLOCK_SIZE];
-    U8 cipher_key_enc[AES_BLOCK_SIZE];
-    U8 cipher_key_dec[AES_BLOCK_SIZE];
-    U8 cipher_key_temp[AES_BLOCK_SIZE];
-    RAND_bytes(cipher_key_enc, AES_BLOCK_SIZE);
-    memcpy(cipher_key_dec, cipher_key_enc, AES_BLOCK_SIZE);
-    memcpy(cipher_key_temp, cipher_key_enc, AES_BLOCK_SIZE);
+    char check;
 
-    RAND_bytes(iv_enc, AES_BLOCK_SIZE);
-    memcpy(iv_dec, iv_enc, AES_BLOCK_SIZE);
-    memcpy(iv_temp, iv_enc, AES_BLOCK_SIZE);
-    
-    printf("text: ");
-    scanf("%s", p_text);
+    U8 b64encoded_data[9] = "TTIwMA==";
+    U8 test[1024];
 
-    size_t text_len = strlen((const char*)p_text);
+    base64_decode(b64encoded_data, test);
+    printf("%s\n", test);
 
-    aes_encrypt(p_text, p_encrypt, iv_enc, cipher_key_enc, text_len);
-    encrypt_size = (text_len + AES_BLOCK_SIZE) / 16 * 16;
-    memcpy(p_temp, p_encrypt, encrypt_size);
-    aes_decrypt(p_temp, p_decrypt, iv_dec, cipher_key_dec, encrypt_size);
+    while (1)
+    {
+        printf("encrypt=e/decrypt=d/exit=q : ");
+        scanf("%c", &check);
 
 
-    printf("chpher_key(base 64): %s\n", base64_encode(cipher_key_temp, AES_BLOCK_SIZE));
-    printf("iv(base 64): %s\n", base64_encode(iv_temp, AES_BLOCK_SIZE));
-    printf("encrypt aes(base 64): %s\n", base64_encode(p_encrypt, encrypt_size));
-    printf("decrypt aes: %s\n", p_decrypt);
+        switch (check)
+        {
+        case 'e':
+        {
+            U8 p_text[173];
+            U8 p_encrypt[1024];
+            U8 p_temp[1024];
+            U8 iv_enc[AES_BLOCK_SIZE];
+            U8 iv_temp[AES_BLOCK_SIZE];
+            U8 cipher_key_enc[AES_BLOCK_SIZE];
+            U8 cipher_key_temp[AES_BLOCK_SIZE];
 
-    system("pause");
-    return 0;
+            RAND_bytes(cipher_key_enc, AES_BLOCK_SIZE);
+            memcpy(cipher_key_temp, cipher_key_enc, AES_BLOCK_SIZE);
+
+            RAND_bytes(iv_enc, AES_BLOCK_SIZE);
+            memcpy(iv_temp, iv_enc, AES_BLOCK_SIZE);
+
+            printf("text: ");
+            scanf(" %[^\n]s", p_text);
+
+            size_t text_len = strlen((const char*)p_text);
+            aes_encrypt(p_text, p_encrypt, iv_enc, cipher_key_enc, text_len);
+            size_t encrypt_size = (text_len + 16) / 16 * 16;
+
+            printf("chpher_key(base 64): %s\n", base64_encode(cipher_key_temp, AES_BLOCK_SIZE));
+            printf("iv(base 64): %s\n", base64_encode(iv_temp, AES_BLOCK_SIZE));
+            printf("encrypted_text(base 64): %s\n", base64_encode(p_encrypt, encrypt_size));
+            while (getchar() != '\n');
+            break;
+        }
+        case 'd':
+        {
+            int encrypt_size;
+            U8 b64encoded_data[24];
+            U8 iv_dec[AES_BLOCK_SIZE];
+            U8 cipher_key_dec[AES_BLOCK_SIZE];
+            U8 p_encrypt[10000];
+            U8 p_decrypt[10000];
+
+            printf("chiper_key(base64): ");
+            scanf("%s", b64encoded_data);
+            base64_decode(b64encoded_data, cipher_key_dec);
+
+            printf("iv(base64): ");
+            scanf("%s", b64encoded_data);
+            base64_decode(b64encoded_data, iv_dec);
+
+            printf("encrypted_data(base64): ");
+            scanf("%s", b64encoded_data);
+            base64_decode(b64encoded_data, p_encrypt);
+
+            size_t decoded_length = (strlen((const char*)b64encoded_data) * 3) / 4;
+            
+            aes_decrypt(p_encrypt, p_decrypt, iv_dec, cipher_key_dec, decoded_length);
+            
+            p_decrypt[decoded_length] = '\0';
+
+            printf("decrypt_text: %s  (The strange characters are due to padding)\n", p_decrypt);
+            memset(p_decrypt, 0, decoded_length);
+
+            while (getchar() != '\n');
+            break;
+        }
+        case 'q':
+        {
+            system("pause");
+            return 0;
+        }
+        default:
+            printf("Please provide the correct arguments");
+            break;
+        }
+    }
 }
