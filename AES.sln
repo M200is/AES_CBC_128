@@ -5,6 +5,8 @@ VisualStudioVersion = 17.5.33627.172
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AES", "AES\AES.vcxproj", "{6A8FA61C-4C93-46F1-95BB-2D3747E8B28B}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "AES_CBC_128 setup", "..\..\..\source\repos\AES_CBC_128 setup\AES_CBC_128 setup\AES_CBC_128 setup.vdproj", "{DCA56C27-1BB2-4227-AA04-F30A374B74C2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{6A8FA61C-4C93-46F1-95BB-2D3747E8B28B}.Release|x64.Build.0 = Release|x64
 		{6A8FA61C-4C93-46F1-95BB-2D3747E8B28B}.Release|x86.ActiveCfg = Release|Win32
 		{6A8FA61C-4C93-46F1-95BB-2D3747E8B28B}.Release|x86.Build.0 = Release|Win32
+		{DCA56C27-1BB2-4227-AA04-F30A374B74C2}.Debug|x64.ActiveCfg = Debug
+		{DCA56C27-1BB2-4227-AA04-F30A374B74C2}.Debug|x64.Build.0 = Debug
+		{DCA56C27-1BB2-4227-AA04-F30A374B74C2}.Debug|x86.ActiveCfg = Debug
+		{DCA56C27-1BB2-4227-AA04-F30A374B74C2}.Debug|x86.Build.0 = Debug
+		{DCA56C27-1BB2-4227-AA04-F30A374B74C2}.Release|x64.ActiveCfg = Release
+		{DCA56C27-1BB2-4227-AA04-F30A374B74C2}.Release|x64.Build.0 = Release
+		{DCA56C27-1BB2-4227-AA04-F30A374B74C2}.Release|x86.ActiveCfg = Release
+		{DCA56C27-1BB2-4227-AA04-F30A374B74C2}.Release|x86.Build.0 = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
