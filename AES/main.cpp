@@ -70,12 +70,6 @@ int main() {
     int i;
     char check;
 
-    U8 b64encoded_data[9] = "TTIwMA==";
-    U8 test[1024];
-
-    base64_decode(b64encoded_data, test);
-    printf("%s\n", test);
-
     while (1)
     {
         printf("encrypt=e/decrypt=d/exit=q : ");
