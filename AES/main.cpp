@@ -1,4 +1,4 @@
-癤�#include <openssl/aes.h>
+#include <openssl/aes.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -43,28 +43,50 @@ void base64_decode(const U8* input, U8* output) {
     BIO_set_flags(bio, BIO_FLAGS_BASE64_NO_NL);
 
     int decoded_length = BIO_read(bio, output, strlen((const char*)input));
+    decoded_length = ((decoded_length + 2) / 3) * 3;
     output[decoded_length] = '\0';
 
     BIO_free_all(bio);
 }
 
-int aes_encrypt(U8* p_in, U8* p_out, U8* cipher_key, U8* iv_enc, int size)
+
+int aes_encrypt(U8* p_in, U8* p_out, U8* iv_enc, U8* cipher_key, int size)
 {
     AES_KEY aes_key;
-    AES_set_encrypt_key(cipher_key, KEY_BIT, &aes_key);
-    AES_cbc_encrypt(p_in, p_out, size, &aes_key, iv_enc, AES_ENCRYPT);
+    if (AES_set_encrypt_key(cipher_key, KEY_BIT, &aes_key) < 0) {
+        printf("Failed to set encryption key.\n");
+        return -1;
+    }
 
-    return 0;
+    int padded_size = ((size + AES_BLOCK_SIZE - 1) / AES_BLOCK_SIZE) * AES_BLOCK_SIZE; // 패딩된 크기 계산
+    int padding = padded_size - size; // 패딩할 바이트 수
+
+    // 패딩 추가
+    memcpy(p_out, p_in, size);
+    memset(p_out + size, padding, padding);
+
+    AES_cbc_encrypt(p_out, p_out, padded_size, &aes_key, iv_enc, AES_ENCRYPT);
+
+    return padded_size;
 }
 
-int aes_decrypt(U8* p_in, U8* p_out, U8* cipher_key, U8* iv_dec, int size)
+int aes_decrypt(U8* p_in, U8* p_out, U8* iv_dec, U8* cipher_key, int size)
 {
     AES_KEY aes_key;
-    AES_set_decrypt_key(cipher_key, KEY_BIT, &aes_key);
+    if (AES_set_decrypt_key(cipher_key, KEY_BIT, &aes_key) < 0) {
+        printf("Failed to set decryption key.\n");
+        return -1;
+    }
+
     AES_cbc_encrypt(p_in, p_out, size, &aes_key, iv_dec, AES_DECRYPT);
-    
-    return 0;
+
+    int padding = p_out[size - 1];
+    int decrypted_size = size - padding;
+
+    return decrypted_size;
 }
+
+
 
 int main() {
     int i;
@@ -73,7 +95,7 @@ int main() {
     while (1)
     {
         printf("encrypt=e/decrypt=d/exit=q : ");
-        scanf("%c", &check);
+        scanf(" %c", &check);
 
 
         switch (check)
@@ -129,9 +151,9 @@ int main() {
             base64_decode(b64encoded_data, p_encrypt);
 
             size_t decoded_length = (strlen((const char*)b64encoded_data) * 3) / 4;
-            
+
             aes_decrypt(p_encrypt, p_decrypt, iv_dec, cipher_key_dec, decoded_length);
-            
+
             p_decrypt[decoded_length] = '\0';
 
             printf("decrypt_text: %s  (The strange characters are due to padding)\n", p_decrypt);
@@ -146,7 +168,7 @@ int main() {
             return 0;
         }
         default:
-            printf("Please provide the correct arguments");
+            printf("Please provide the correct arguments\n");
             break;
         }
     }
